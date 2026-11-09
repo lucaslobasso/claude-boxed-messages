@@ -1,0 +1,6 @@
+{
+  "name": "claude-boxed-messages",
+  "owner": { "name": "lucaslobasso" },
+  "description": "Boxed, color-coded chat messages for Claude Code",
+  "plugins": [{ "name": "boxed-messages", "source": "./" }]
+}

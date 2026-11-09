@@ -1,0 +1,34 @@
+{
+  "name": "boxed-messages",
+  "version": "1.0.0",
+  "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange)",
+  "author": {
+    "name": "lucaslobasso"
+  },
+  "homepage": "https://github.com/lucaslobasso/claude-boxed-messages",
+  "license": "MIT",
+  "userConfig": {
+    "showBars": {
+      "type": "boolean",
+      "title": "Message bars",
+      "description": "Colored bar left of your prompts (blue) and Claude's replies (orange)",
+      "default": true
+    },
+    "showBackground": {
+      "type": "boolean",
+      "title": "Message background",
+      "description": "Tint behind each message, a lighter version of its bar color",
+      "default": false
+    },
+    "backgroundShade": {
+      "type": "string",
+      "title": "Background shade",
+      "description": "dark: dim tint for dark terminal themes. light: pastel tint for light terminal themes",
+      "options": [
+        "dark",
+        "light"
+      ],
+      "default": "dark"
+    }
+  }
+}
