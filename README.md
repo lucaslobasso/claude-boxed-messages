@@ -42,6 +42,22 @@ In `/config` under `boxed-messages`, or toggle from the prompt:
 
 Colors and tint strength are constants at the top of `hooks/register.tsx`.
 
+## Matching status line (optional)
+
+`ccstatusline/settings.json` is the [ccstatusline](https://github.com/sirmalloc/ccstatusline) config I use alongside this mod: model, thinking effort, context bar, git branch, and the usage reset timers.
+
+```
+npm i -g ccstatusline
+mkdir -p ~/.config/ccstatusline
+cp ccstatusline/settings.json ~/.config/ccstatusline/settings.json
+```
+
+Then add this to `~/.claude/settings.json`:
+
+```json
+"statusLine": { "type": "command", "command": "ccstatusline", "padding": 0 }
+```
+
 ## Known limits
 
 - Your prompts are redrawn as plain text, so special rows (e.g. pasted-image placeholders) show as their text label.
