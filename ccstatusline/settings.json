@@ -18,12 +18,11 @@
         "type": "separator"
       },
       {
-        "id": "5",
-        "type": "context-bar",
+        "id": "845760bb-f799-46a0-a25f-47462e4b4c34",
+        "type": "context-percentage",
         "color": "brightBlue",
-        "rawValue": false,
         "metadata": {
-          "display": "line"
+          "inverse": "false"
         }
       },
       {
@@ -41,6 +40,11 @@
         "color": ""
       },
       {
+        "id": "e53d7435-3465-479e-8875-08b634ca6c93",
+        "type": "weekly-usage",
+        "color": "brightWhite"
+      },
+      {
         "id": "a7c470fc-26b0-4fea-86cd-7b51e50bf0ee",
         "type": "weekly-reset-timer",
         "color": "",
@@ -51,9 +55,14 @@
         "type": "separator"
       },
       {
+        "id": "289048f6-7a98-4c84-be8a-0fcb030eca79",
+        "type": "session-usage",
+        "color": "brightMagenta"
+      },
+      {
         "id": "f9c9e63b-7eb4-4795-baf5-4e4867a72361",
         "type": "reset-timer",
-        "color": "brightWhite"
+        "color": ""
       }
     ],
     [],

@@ -44,7 +44,7 @@ Colors and tint strength are constants at the top of `hooks/register.tsx`.
 
 ## Matching status line (optional)
 
-`ccstatusline/settings.json` is the [ccstatusline](https://github.com/sirmalloc/ccstatusline) config I use alongside this mod: model, thinking effort, context bar, git branch, and the usage reset timers.
+`ccstatusline/settings.json` is the [ccstatusline](https://github.com/sirmalloc/ccstatusline) config I use alongside this mod: model, thinking effort, context percentage, git branch, and weekly/session usage with their reset timers.
 
 ```
 npm i -g ccstatusline
