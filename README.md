@@ -38,25 +38,16 @@ In `/config` under `boxed-messages`, or toggle from the prompt:
 | `/boxed-messages bars` | Message bars on/off | on |
 | `/boxed-messages bg` | Message background on/off | off |
 | `/boxed-messages shade` | Background shade: `dark` (dark terminals) / `light` (light terminals) | dark |
+| `/boxed-messages status` | Built-in status line on/off | on |
 | `/boxed-messages` | Show current state | |
 
 Colors and tint strength are constants at the top of `hooks/register.tsx`.
 
-## Matching status line (optional)
+## Status line
 
-`ccstatusline/settings.json` is the [ccstatusline](https://github.com/sirmalloc/ccstatusline) config I use alongside this mod: model, thinking effort, context bar, git branch, and the usage reset timers.
+The mod includes a status line under the prompt, so no separate install is needed. It shows the model and thinking effort, context used, git branch, and on the right your weekly and 5-hour usage with their reset timers (usage appears for Claude subscriptions). Its layout is a built-in copy of a [ccstatusline](https://github.com/sirmalloc/ccstatusline) setup, and there is nothing to configure beyond turning it on or off (`/boxed-messages status`, or in `/config`).
 
-```
-npm i -g ccstatusline
-mkdir -p ~/.config/ccstatusline
-cp ccstatusline/settings.json ~/.config/ccstatusline/settings.json
-```
-
-Then add this to `~/.claude/settings.json`:
-
-```json
-"statusLine": { "type": "command", "command": "ccstatusline", "padding": 0 }
-```
+While on, it replaces any `statusLine` in your own settings. It runs with `node`, which must be on your `PATH`. The layout and colors are constants at the top of `statusline/statusline.mjs`.
 
 ## Known limits
 

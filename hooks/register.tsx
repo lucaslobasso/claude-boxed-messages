@@ -86,13 +86,27 @@ export const register: Register = (on, options) => {
     shade: typeof options.backgroundShade === 'string' ? options.backgroundShade : 'dark',
   }
   const isOff = !look.bars && !look.background
+  const statusOn = options.showStatusLine !== false
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'boxed-messages',
-      description: 'Toggle message bars/background: /boxed-messages bars|bg|shade',
+      description: 'Toggle message bars/background/status line: /boxed-messages bars|bg|shade|status',
     })
     return next(e)
+  })
+
+  // The status line: hand the engine a `statusLine` command in the merged settings
+  // (single-source reads, `e.source`, are left alone), so it overrides any other
+  // while on. The script ships with the mod; forward slashes survive a bash shell.
+  on('settings.read', async ($, e, next) => {
+    const settings = await next(e)
+    if (!statusOn || e.source) return settings
+    const script = `${$.plugin.root}/statusline/statusline.mjs`.replace(/\\/g, '/')
+    return {
+      ...settings,
+      statusLine: { type: 'command', command: `node "${script}"`, padding: 0, refreshInterval: 10 },
+    }
   })
 
   on('command.run', { command: 'boxed-messages' }, async ($, e) => {
@@ -104,10 +118,11 @@ export const register: Register = (on, options) => {
     if (arg === 'bars') return flip('showBars', !look.bars, 'Message bars')
     if (arg === 'bg' || arg === 'background') return flip('showBackground', !look.background, 'Message background')
     if (arg === 'shade') return flip('backgroundShade', look.shade === 'light' ? 'dark' : 'light', 'Background shade')
+    if (arg === 'status' || arg === 'statusline') return flip('showStatusLine', !statusOn, 'Status line')
     return {
       text:
-        `Bars: ${look.bars ? 'on' : 'off'} · Background: ${look.background ? 'on' : 'off'} (${look.shade})\n` +
-        'Usage: /boxed-messages bars | bg | shade   (each toggles; also in /config)',
+        `Bars: ${look.bars ? 'on' : 'off'} · Background: ${look.background ? 'on' : 'off'} (${look.shade}) · Status line: ${statusOn ? 'on' : 'off'}\n` +
+        'Usage: /boxed-messages bars | bg | shade | status   (each toggles; also in /config)',
     }
   })
 

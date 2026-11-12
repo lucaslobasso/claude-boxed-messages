@@ -1,7 +1,7 @@
 {
   "name": "boxed-messages",
-  "version": "1.0.0",
-  "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange)",
+  "version": "1.1.0",
+  "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange), plus a built-in status line",
   "author": {
     "name": "lucaslobasso"
   },
@@ -29,6 +29,12 @@
         "light"
       ],
       "default": "dark"
+    },
+    "showStatusLine": {
+      "type": "boolean",
+      "title": "Status line",
+      "description": "Built-in status line under the prompt: model, effort, context, git branch, usage and reset timers. Replaces any other statusLine while on",
+      "default": true
     }
   }
 }
