@@ -112,7 +112,7 @@ If you uninstalled without doing that, delete the `statusLine` entry that mentio
 
 - Your prompts are redrawn as plain text, so special rows (e.g. pasted-image placeholders) show as their text label.
 - The background works best on dark themes close to `#1c2029`–`#282c34`; a faint line may show above messages on very different backgrounds.
-- The usage part of the status line follows the branch, separated by a gray bar, instead of sitting flush right. Claude Code doesn't tell the script the terminal width; if your environment sets `COLUMNS`, the script uses it to right-align.
+- The status line right-aligns the usage part using the `COLUMNS` variable Claude Code sets for it, and stops 5 columns short of the edge. Without `COLUMNS` it falls back to a gray bar between the two groups.
 
 ## Contributing
 

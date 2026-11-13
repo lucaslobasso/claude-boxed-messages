@@ -1,11 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="754" height="153" viewBox="0 0 754 153" role="img" aria-label="The built-in status line, as the script prints it" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="888" height="153" viewBox="0 0 888 153" role="img" aria-label="The built-in status line, as the script prints it" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
 <title>The built-in status line, as the script prints it</title>
-<rect x=".5" y=".5" width="753" height="152" rx="10" fill="#1c2029" stroke="#343a46"/>
-<path d="M.5 38V10.5a10 10 0 0 1 10-10h733a10 10 0 0 1 10 10V38z" fill="#171a21"/>
+<rect x=".5" y=".5" width="887" height="152" rx="10" fill="#1c2029" stroke="#343a46"/>
+<path d="M.5 38V10.5a10 10 0 0 1 10-10h867a10 10 0 0 1 10 10V38z" fill="#171a21"/>
 <circle cx="22" cy="19" r="6" fill="#ff5f57"/><circle cx="42" cy="19" r="6" fill="#febc2e"/><circle cx="62" cy="19" r="6" fill="#28c840"/>
-<text x="377" y="24" fill="#7f8794" text-anchor="middle" font-size="12">claude</text>
-<rect x="24" y="48" width="705.6" height="59" rx="6" fill="none" stroke="#343a46"/>
-<text x="40.8" y="82" fill="#d7dae0" textLength="8.4" lengthAdjust="spacing" xml:space="preserve">&gt;</text>
-<rect x="57.6" y="69" width="8.4" height="17" fill="#d7dae0" opacity=".7"/>
-<text x="24" y="124" textLength="638.4" lengthAdjust="spacing" xml:space="preserve"><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(238,238,236)">Opus 5.5</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">high</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(114,159,207)">23.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">main</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#8b949e"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(238,238,236)">61.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">3d 4hr 12m</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(173,127,168)">18.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">2hr 13m</tspan><tspan fill="#d7dae0"> </tspan></text>
+<text x="444" y="24" fill="#7f8794" text-anchor="middle" font-size="12">claude</text>
+<line x1="24.0" y1="56.5" x2="40.8" y2="56.5" stroke="#7f8794" stroke-opacity=".55"/>
+<text x="40.8" y="61" fill="#7f8794" textLength="151.2" lengthAdjust="spacing" xml:space="preserve"> dark-mode-toggle </text>
+<line x1="192.0" y1="56.5" x2="864.0" y2="56.5" stroke="#7f8794" stroke-opacity=".55"/>
+<text x="24.0" y="82" fill="#d7dae0" textLength="8.4" lengthAdjust="spacing" xml:space="preserve">&gt;</text>
+<rect x="40.8" y="69" width="8.4" height="17" fill="#d7dae0" opacity=".7"/>
+<line x1="24.0" y1="98.5" x2="864.0" y2="98.5" stroke="#7f8794" stroke-opacity=".55"/>
+<text x="24" y="124" textLength="798.0" lengthAdjust="spacing" xml:space="preserve"><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(238,238,236)">Opus 5.5</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">high</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(114,159,207)">23.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">main</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">                      </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(238,238,236)">61.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">3d 4hr 12m</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(85,87,83)"> | </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="rgb(173,127,168)">18.0%</tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0"> </tspan><tspan fill="#d7dae0">2hr 13m</tspan><tspan fill="#d7dae0"> </tspan></text>
 </svg>
