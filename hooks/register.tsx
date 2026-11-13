@@ -79,6 +79,61 @@ const drawPrompt = (
   )
 }
 
+// The status line. Claude Code takes `statusLine` only from the settings files, not
+// from a plugin, so the mod keeps that entry in ~/.claude/settings.json in step with
+// its setting: on adds it (or refreshes our own), off removes it. An entry that is not
+// ours is never touched; the person is told instead. The script ships with the mod
+// (`statusline/statusline.mjs`); forward slashes survive a bash shell on Windows.
+const SCRIPT = 'statusline/statusline.mjs'
+const BLOCK = /[ \t]*"statusLine"\s*:\s*\{[^{}]*\}[ \t]*,?[ \t]*\r?\n?/
+
+const syncStatusLine = async ($: EngineInterface, isOn: boolean): Promise<string | undefined> => {
+  const home = (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME'))
+  if (!home) return undefined
+  const file = `${home.replace(/\\/g, '/')}/.claude/settings.json`
+  let text: string
+  let settings: Record<string, any>
+  try {
+    text = (await $.fs.read(file)) as string
+    settings = JSON.parse(text)
+  } catch {
+    return undefined // no settings file, or one we can't parse: leave it be
+  }
+
+  const current = settings.statusLine
+  const isOurs = typeof current?.command === 'string' && current.command.includes(SCRIPT)
+  const script = `${$.plugin.root}/${SCRIPT}`.replace(/\\/g, '/')
+  const wanted = { type: 'command', command: `node "${script}"`, padding: 0, refreshInterval: 10 }
+  const entry = `  "statusLine": ${JSON.stringify(wanted)}`
+
+  let next: string | undefined
+  if (isOn) {
+    if (current !== undefined && !isOurs) {
+      return 'Status line not set: your settings.json already has a different statusLine. Remove it to use the built-in one.'
+    }
+    if (isOurs && JSON.stringify(current) === JSON.stringify(wanted)) return undefined
+    next = isOurs
+      ? text.replace(BLOCK, m => m.replace(/"statusLine"[\s\S]*\}/, entry.trim()))
+      : text.replace('{', `{\n${entry}${Object.keys(settings).length ? ',' : ''}`)
+  } else if (isOurs) {
+    next = text.replace(BLOCK, '')
+  }
+  if (next === undefined) return undefined
+
+  // Keep the file's own formatting when the edit parses to what we meant; else rewrite it whole.
+  const want = { ...settings }
+  if (isOn) want.statusLine = wanted
+  else delete want.statusLine
+  const rest = (o: Record<string, any>) => JSON.stringify(Object.entries(o).filter(([k]) => k !== 'statusLine').sort())
+  let ok = false
+  try {
+    const got = JSON.parse(next)
+    ok = rest(got) === rest(settings) && JSON.stringify(got.statusLine) === JSON.stringify(want.statusLine)
+  } catch {}
+  await $.fs.write(file, ok ? next : JSON.stringify(want, null, 2) + '\n')
+  return undefined
+}
+
 export const register: Register = (on, options) => {
   const look: Look = {
     bars: options.showBars !== false,
@@ -93,20 +148,10 @@ export const register: Register = (on, options) => {
       name: 'boxed-messages',
       description: 'Toggle message bars/background/status line: /boxed-messages bars|bg|shade|status',
     })
+    // Runs on every load, so flipping the setting (which reloads the mod) applies it.
+    const blocked = await syncStatusLine($, statusOn)
+    if (blocked) $.ui.toast(blocked)
     return next(e)
-  })
-
-  // The status line: hand the engine a `statusLine` command in the merged settings
-  // (single-source reads, `e.source`, are left alone), so it overrides any other
-  // while on. The script ships with the mod; forward slashes survive a bash shell.
-  on('settings.read', async ($, e, next) => {
-    const settings = await next(e)
-    if (!statusOn || e.source) return settings
-    const script = `${$.plugin.root}/statusline/statusline.mjs`.replace(/\\/g, '/')
-    return {
-      ...settings,
-      statusLine: { type: 'command', command: `node "${script}"`, padding: 0, refreshInterval: 10 },
-    }
   })
 
   on('command.run', { command: 'boxed-messages' }, async ($, e) => {

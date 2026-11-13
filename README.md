@@ -47,7 +47,7 @@ Colors and tint strength are constants at the top of `hooks/register.tsx`.
 
 The mod includes a status line under the prompt, so no separate install is needed. It shows the model and thinking effort, context used, git branch, and on the right your weekly and 5-hour usage with their reset timers (usage appears for Claude subscriptions). Its layout is a built-in copy of a [ccstatusline](https://github.com/sirmalloc/ccstatusline) setup, and there is nothing to configure beyond turning it on or off (`/boxed-messages status`, or in `/config`).
 
-While on, it replaces any `statusLine` in your own settings. It runs with `node`, which must be on your `PATH`. The layout and colors are constants at the top of `statusline/statusline.mjs`.
+Claude Code only reads `statusLine` from the settings files, so the mod keeps a `statusLine` entry in `~/.claude/settings.json` in step with the switch: on adds it, off removes it again. It only ever touches an entry it wrote itself; if you already have a different `statusLine`, the mod leaves it alone and shows a notice, so remove yours to use the built-in one. It runs with `node`, which must be on your `PATH`. The layout and colors are constants at the top of `statusline/statusline.mjs`.
 
 ## Known limits
 
