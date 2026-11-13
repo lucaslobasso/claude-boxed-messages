@@ -33,7 +33,8 @@ const CW = 8.4
 const LH = 21
 const PAD = 24
 const TOP = 46
-const COLS = 84
+const COLS = 100
+const SESSION = 'dark-mode-toggle' // sample session name, shown on the input's top rule
 const FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace"
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
@@ -53,8 +54,9 @@ const statusLineAnsi = () => {
         five_hour: { used_percentage: 18, resets_at: now + 2 * 3600 + 13 * 60 + 30 },
       },
     }
-    const env = { ...process.env }
-    delete env.COLUMNS
+    // Claude Code runs the command with COLUMNS set to the terminal's width (verified:
+    // 120 in a 120-column terminal); the script right-aligns to it, leaving 5 columns.
+    const env = { ...process.env, COLUMNS: String(COLS) }
     delete env.CCSTATUSLINE_WIDTH
     const r = spawnSync('node', [script], { input: JSON.stringify(input), env, encoding: 'utf8' })
     if (!r.stdout.trim()) throw new Error('statusline.mjs printed nothing: ' + r.stderr)
@@ -115,9 +117,17 @@ const scene = (themeName, { bars = true, background = false, messages = true, pr
     row += 1
   }
   if (prompt) {
-    parts.push(`<rect x="${x(0)}" y="${y(row) + 2}" width="${COLS * CW}" height="${3 * LH - 4}" rx="6" fill="none" stroke="${t.border}"/>`)
-    text(2, row + 1, '>', t.fg)
-    parts.push(`<rect x="${x(4)}" y="${y(row + 1) + 2}" width="${CW}" height="${LH - 4}" fill="${t.fg}" opacity=".7"/>`)
+    // The input is two horizontal rules around the prompt row, with no side borders or
+    // rounded corners; the session's name sits on the top rule at the left.
+    const rule = (r, from, to) =>
+      parts.push(`<line x1="${x(from).toFixed(1)}" y1="${y(r) + LH / 2}" x2="${x(to).toFixed(1)}" y2="${y(r) + LH / 2}" stroke="${t.dim}" stroke-opacity=".55"/>`)
+    const label = ` ${SESSION} `
+    rule(row, 0, 2)
+    text(2, row, label, t.dim)
+    rule(row, 2 + label.length, COLS)
+    text(0, row + 1, '>', t.fg)
+    parts.push(`<rect x="${x(2)}" y="${y(row + 1) + 2}" width="${CW}" height="${LH - 4}" fill="${t.fg}" opacity=".7"/>`)
+    rule(row + 2, 0, COLS)
     row += 3
   }
   if (status) {
