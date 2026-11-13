@@ -33,7 +33,7 @@
     "showStatusLine": {
       "type": "boolean",
       "title": "Status line",
-      "description": "Built-in status line under the prompt: model, effort, context, git branch, usage and reset timers. Replaces any other statusLine while on",
+      "description": "Built-in status line under the prompt: model, effort, context, git branch, usage and reset timers. Adds a statusLine entry to ~/.claude/settings.json (removed again when off); a different statusLine of yours is left alone",
       "default": true
     }
   }
