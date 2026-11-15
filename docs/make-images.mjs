@@ -1,31 +1,19 @@
 #!/usr/bin/env node
-// Regenerates the README illustrations in this folder:  node docs/make-images.mjs
+// Regenerates the README's light-theme illustration:  node docs/make-images.mjs
 //
-// They are drawings, not screenshots. The status line is the real output of
-// statusline/statusline.mjs (run here against sample data and converted from ANSI
-// colors to SVG); the message boxes are drawn from the same colors and tint math as
-// hooks/register.tsx. A real terminal differs in font and spacing.
-import { spawnSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+// They are drawings, not screenshots: the message boxes use the mod's own colors
+// and tint math (hooks/colors.ts, imported directly; Node 22.18+ reads .ts files).
+// The screenshots next to them come from docs/capture.ps1.
+import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { DARK_BASE, DEFAULT_CLAUDE_COLOR as CLAUDE, DEFAULT_USER_COLOR as USER, LIGHT_BASE, tint } from '../hooks/colors.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const script = join(here, '..', 'statusline', 'statusline.mjs')
-
-// Same as hooks/register.tsx.
-const USER = '#4c8dff'
-const CLAUDE = '#d97757'
-const mix = (hex, target, amount) => {
-  const ch = (h, i) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16)
-  const out = [0, 1, 2].map(i => Math.round(ch(hex, i) + (ch(target, i) - ch(hex, i)) * amount))
-  return '#' + out.map(v => v.toString(16).padStart(2, '0')).join('')
-}
 
 const themes = {
-  dark: { bg: '#1c2029', chrome: '#171a21', fg: '#d7dae0', dim: '#7f8794', border: '#343a46', tint: c => mix(c, '#1c2029', 0.85) },
-  light: { bg: '#ffffff', chrome: '#eff1f3', fg: '#24292f', dim: '#6e7781', border: '#d0d7de', tint: c => mix(c, '#ffffff', 0.82) },
+  dark: { bg: DARK_BASE, chrome: '#171a21', fg: '#d7dae0', dim: '#7f8794', border: '#343a46', tint: c => tint(c, 'dark') },
+  light: { bg: LIGHT_BASE, chrome: '#eff1f3', fg: '#24292f', dim: '#6e7781', border: '#d0d7de', tint: c => tint(c, 'light') },
 }
 
 // Geometry: one terminal cell is CW x LH.
@@ -38,59 +26,13 @@ const SESSION = 'dark-mode-toggle' // sample session name, shown on the input's 
 const FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace"
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-// The status line, as the script prints it for this sample, in a throwaway repo on `main`.
-const statusLineAnsi = () => {
-  const repo = mkdtempSync(join(tmpdir(), 'boxed-messages-'))
-  try {
-    spawnSync('git', ['init', '-q', '-b', 'main'], { cwd: repo })
-    const now = Math.floor(Date.now() / 1000)
-    const input = {
-      model: { id: 'claude-opus-5-5', display_name: 'Opus 5.5 (1M context)' },
-      effort: { level: 'high' },
-      cwd: repo,
-      context_window: { used_percentage: 23 },
-      rate_limits: {
-        seven_day: { used_percentage: 61, resets_at: now + 3 * 86400 + 4 * 3600 + 12 * 60 + 30 },
-        five_hour: { used_percentage: 18, resets_at: now + 2 * 3600 + 13 * 60 + 30 },
-      },
-    }
-    // Claude Code runs the command with COLUMNS set to the terminal's width (verified:
-    // 120 in a 120-column terminal); the script right-aligns to it, leaving 5 columns.
-    const env = { ...process.env, COLUMNS: String(COLS) }
-    delete env.CCSTATUSLINE_WIDTH
-    const r = spawnSync('node', [script], { input: JSON.stringify(input), env, encoding: 'utf8' })
-    if (!r.stdout.trim()) throw new Error('statusline.mjs printed nothing: ' + r.stderr)
-    return r.stdout.replace(/\n$/, '')
-  } finally {
-    rmSync(repo, { recursive: true, force: true })
-  }
-}
-
-// ANSI (reset, 24-bit foreground, default foreground, gray) to SVG tspans.
-const ansiToTspans = (ansi, defaultFill, gray) => {
-  let fill
-  let svg = ''
-  let cells = 0
-  for (const [, code, text] of ansi.matchAll(/\x1b\[([0-9;]*)m|([^\x1b]+)/g)) {
-    if (text === undefined) {
-      if (code.startsWith('38;2;')) fill = `rgb(${code.slice(5).split(';').join(',')})`
-      else if (code === '90') fill = gray
-      else fill = undefined // 0, 39
-      continue
-    }
-    cells += [...text].length
-    svg += `<tspan fill="${fill ?? defaultFill}">${esc(text)}</tspan>`
-  }
-  return { svg, cells }
-}
-
 const REPLY = [
   'I added a `ThemeToggle` component and wired it into the settings',
   'page. It follows the system theme by default and remembers your',
   'choice between sessions.',
 ]
 
-const scene = (themeName, { bars = true, background = false, messages = true, prompt = false, status = false, label }) => {
+const scene = (themeName, { bars = true, background = false, prompt = false, label }) => {
   const t = themes[themeName]
   const parts = []
   let row = 0
@@ -106,34 +48,28 @@ const scene = (themeName, { bars = true, background = false, messages = true, pr
     row += h
   }
 
-  if (messages) {
-    row = 1
-    box(USER, ['Add a dark mode toggle to the settings page'])
-    row += 1
-    text(0, row, '● Update(src/Settings.tsx)', t.dim)
-    text(0, row + 1, '  └ Added 14 lines', t.dim)
-    row += 3
-    box(CLAUDE, REPLY)
-    row += 1
-  }
+  row = 1
+  box(USER, ['Add a dark mode toggle to the settings page'])
+  row += 1
+  text(0, row, '● Update(src/Settings.tsx)', t.dim)
+  text(0, row + 1, '  └ Added 14 lines', t.dim)
+  row += 3
+  box(CLAUDE, REPLY)
+  row += 1
+
   if (prompt) {
     // The input is two horizontal rules around the prompt row, with no side borders or
     // rounded corners; the session's name sits on the top rule at the left.
     const rule = (r, from, to) =>
       parts.push(`<line x1="${x(from).toFixed(1)}" y1="${y(r) + LH / 2}" x2="${x(to).toFixed(1)}" y2="${y(r) + LH / 2}" stroke="${t.dim}" stroke-opacity=".55"/>`)
-    const label = ` ${SESSION} `
+    const name = ` ${SESSION} `
     rule(row, 0, 2)
-    text(2, row, label, t.dim)
-    rule(row, 2 + label.length, COLS)
+    text(2, row, name, t.dim)
+    rule(row, 2 + name.length, COLS)
     text(0, row + 1, '>', t.fg)
     parts.push(`<rect x="${x(2)}" y="${y(row + 1) + 2}" width="${CW}" height="${LH - 4}" fill="${t.fg}" opacity=".7"/>`)
     rule(row + 2, 0, COLS)
     row += 3
-  }
-  if (status) {
-    const { svg, cells } = ansiToTspans(statusLineAnsi(), t.fg, '#8b949e')
-    parts.push(`<text x="${x(0)}" y="${y(row) + 15}" textLength="${(cells * CW).toFixed(1)}" lengthAdjust="spacing" xml:space="preserve">${svg}</text>`)
-    row += 1
   }
 
   const width = Math.round(PAD * 2 + COLS * CW)
@@ -150,11 +86,8 @@ ${parts.join('\n')}
 }
 
 const files = {
-  'hero.svg': scene('dark', { background: true, prompt: true, status: true, label: 'Illustration: boxed messages with a tinted background and the built-in status line' }),
-  'bars.svg': scene('dark', { label: 'Illustration: a colored bar beside each message (the default)' }),
-  'background.svg': scene('dark', { background: true, label: 'Illustration: bars plus a tinted background, dark shade' }),
+  // The dark shade has real screenshots (docs/screenshot-*.png); the light one is drawn here.
   'background-light.svg': scene('light', { background: true, label: 'Illustration: bars plus a tinted background, light shade' }),
-  'statusline.svg': scene('dark', { messages: false, prompt: true, status: true, label: 'The built-in status line, as the script prints it' }),
 }
 for (const [name, svg] of Object.entries(files)) writeFileSync(join(here, name), svg)
 console.log('wrote', Object.keys(files).join(', '))

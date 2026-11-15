@@ -1,22 +1,10 @@
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
+import { DEFAULT_CLAUDE_COLOR, DEFAULT_TINT, DEFAULT_USER_COLOR, isHex, tint } from './colors'
 
-// Change these to recolor the bars; the backgrounds are derived from them.
-const USER_COLOR = '#4c8dff'
-const CLAUDE_COLOR = '#d97757'
+type Look = { bars: boolean; background: boolean; shade: string; user: string; claude: string; strength: number }
 
-// Mix a #rrggbb color toward another by `amount` (0 = unchanged, 1 = target).
-const mix = (hex: string, target: string, amount: number): string => {
-  const ch = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16)
-  const out = [0, 1, 2].map(i => Math.round(ch(hex, i) + (ch(target, i) - ch(hex, i)) * amount))
-  return '#' + out.map(v => v.toString(16).padStart(2, '0')).join('')
-}
-
-type Look = { bars: boolean; background: boolean; shade: string }
-
-// dark: mostly a dark blue-grey (like a typical dark theme) with a hint of the
-// bar color, so light text stays readable. light: pastel for light themes.
-const tint = (color: string, shade: string) =>
-  shade === 'light' ? mix(color, '#ffffff', 0.82) : mix(color, '#1c2029', 0.85)
+// Wide enough for any realistic terminal; the row is clipped to the message width.
+const PLAIN_ROW = ' '.repeat(2000)
 
 // The bar is a solid 1-column Box beside the message, in the normal flow (no
 // absolute positioning, so it can't leak into other rows while scrolling).
@@ -33,17 +21,16 @@ const decorateReply = (
   $: EngineInterface,
   e: Parameters<EngineInterface['ui']['resolve']>[0],
   inner: RenderChildren,
-  color: string,
   look: Look,
 ) => {
   const { Box, Text } = $.ui.resolve(e)
-  const bg = look.background ? tint(color, look.shade) : undefined
+  const bg = look.background ? tint(look.claude, look.shade, look.strength) : undefined
   return (
     <Box flexDirection="row">
       {look.bars && (
         <Box width={1} flexShrink={0} flexDirection="column">
           <Box height={1} flexShrink={0} />
-          <Box flexGrow={1} backgroundColor={color} />
+          <Box flexGrow={1} backgroundColor={look.claude} />
         </Box>
       )}
       <Box flexDirection="column" flexGrow={1} paddingX={2} paddingTop={1} paddingBottom={1} backgroundColor={bg}>
@@ -51,7 +38,7 @@ const decorateReply = (
       </Box>
       {bg && (
         <Box position="absolute" top={0} left={0} right={0} height={1} overflow="hidden">
-          <Text>{' '.repeat(500)}</Text>
+          <Text>{PLAIN_ROW}</Text>
         </Box>
       )}
     </Box>
@@ -64,14 +51,13 @@ const drawPrompt = (
   $: EngineInterface,
   e: Parameters<EngineInterface['ui']['resolve']>[0],
   text: string,
-  color: string,
   look: Look,
 ) => {
   const { Box, Text } = $.ui.resolve(e)
-  const bg = look.background ? tint(color, look.shade) : undefined
+  const bg = look.background ? tint(look.user, look.shade, look.strength) : undefined
   return (
     <Box flexDirection="row" marginTop={1}>
-      {look.bars && <Box width={1} flexShrink={0} backgroundColor={color} />}
+      {look.bars && <Box width={1} flexShrink={0} backgroundColor={look.user} />}
       <Box flexDirection="column" flexGrow={1} paddingX={2} paddingY={1} backgroundColor={bg}>
         <Text>{text}</Text>
       </Box>
@@ -79,78 +65,77 @@ const drawPrompt = (
   )
 }
 
-// The status line. Claude Code takes `statusLine` only from the settings files, not
-// from a plugin, so the mod keeps that entry in ~/.claude/settings.json in step with
-// its setting: on adds it (or refreshes our own), off removes it. An entry that is not
-// ours is never touched; the person is told instead. The script ships with the mod
-// (`statusline/statusline.mjs`); forward slashes survive a bash shell on Windows.
-const SCRIPT = 'statusline/statusline.mjs'
-const BLOCK = /[ \t]*"statusLine"\s*:\s*\{[^{}]*\}[ \t]*,?[ \t]*\r?\n?/
+// Up to 1.1.x the mod shipped a status line and kept a `statusLine` entry in the
+// user settings.json pointing at its own copy of statusline/statusline.mjs. 2.0
+// dropped it, so that entry would point at a script that no longer exists. Remove
+// it, and only when it is plainly ours: a command naming a boxed-messages folder
+// and that script. Anything else is left alone. Can go in a later release.
+const OLD_SCRIPT = /boxed-messages[\\/][^"]*statusline[\\/]statusline\.mjs/
+const OLD_BLOCK = /[ \t]*"statusLine"\s*:\s*\{[^{}]*\}[ \t]*,?[ \t]*\r?\n?/
 
-const syncStatusLine = async ($: EngineInterface, isOn: boolean): Promise<string | undefined> => {
+export const removeOldStatusLine = async ($: EngineInterface): Promise<boolean> => {
+  const configDir = await $.env.get('CLAUDE_CONFIG_DIR')
   const home = (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME'))
-  if (!home) return undefined
-  const file = `${home.replace(/\\/g, '/')}/.claude/settings.json`
+  const dir = configDir || (home ? `${home}/.claude` : undefined)
+  if (!dir) return false
+  const file = `${dir.replace(/\\/g, '/')}/settings.json`
   let text: string
   let settings: Record<string, any>
   try {
     text = (await $.fs.read(file)) as string
     settings = JSON.parse(text)
   } catch {
-    return undefined // no settings file, or one we can't parse: leave it be
+    return false
   }
+  const command = settings.statusLine?.command
+  if (typeof command !== 'string' || !OLD_SCRIPT.test(command)) return false
 
-  const current = settings.statusLine
-  const isOurs = typeof current?.command === 'string' && current.command.includes(SCRIPT)
-  const script = `${$.plugin.root}/${SCRIPT}`.replace(/\\/g, '/')
-  const wanted = { type: 'command', command: `node "${script}"`, padding: 0, refreshInterval: 10 }
-  const entry = `  "statusLine": ${JSON.stringify(wanted)}`
-
-  let next: string | undefined
-  if (isOn) {
-    if (current !== undefined && !isOurs) {
-      return 'Status line not set: your settings.json already has a different statusLine. Remove it to use the built-in one.'
-    }
-    if (isOurs && JSON.stringify(current) === JSON.stringify(wanted)) return undefined
-    next = isOurs
-      ? text.replace(BLOCK, m => m.replace(/"statusLine"[\s\S]*\}/, entry.trim()))
-      : text.replace('{', `{\n${entry}${Object.keys(settings).length ? ',' : ''}`)
-  } else if (isOurs) {
-    next = text.replace(BLOCK, '')
-  }
-  if (next === undefined) return undefined
-
-  // Keep the file's own formatting when the edit parses to what we meant; else rewrite it whole.
-  const want = { ...settings }
-  if (isOn) want.statusLine = wanted
-  else delete want.statusLine
-  const rest = (o: Record<string, any>) => JSON.stringify(Object.entries(o).filter(([k]) => k !== 'statusLine').sort())
-  let ok = false
+  const want: Record<string, any> = { ...settings }
+  delete want.statusLine
+  // Keep the file's own formatting when the cut parses to what we meant; else rewrite it whole.
+  let next = text.replace(OLD_BLOCK, '')
   try {
-    const got = JSON.parse(next)
-    ok = rest(got) === rest(settings) && JSON.stringify(got.statusLine) === JSON.stringify(want.statusLine)
-  } catch {}
-  await $.fs.write(file, ok ? next : JSON.stringify(want, null, 2) + '\n')
-  return undefined
+    if (JSON.stringify(JSON.parse(next)) !== JSON.stringify(want)) next = JSON.stringify(want, null, 2) + '\n'
+  } catch {
+    next = JSON.stringify(want, null, 2) + '\n'
+  }
+  await $.fs.write(file, next)
+  return true
 }
 
+const USAGE = 'Usage: /boxed-messages bars | bg | shade   (each toggles; colors and tint strength are in /config)'
+
 export const register: Register = (on, options) => {
+  const strength = Number(options.tintStrength)
   const look: Look = {
     bars: options.showBars !== false,
     background: options.showBackground === true,
-    shade: typeof options.backgroundShade === 'string' ? options.backgroundShade : 'dark',
+    shade: options.backgroundShade === 'light' ? 'light' : 'dark',
+    user: isHex(options.userColor) ? options.userColor : DEFAULT_USER_COLOR,
+    claude: isHex(options.claudeColor) ? options.claudeColor : DEFAULT_CLAUDE_COLOR,
+    strength:
+      options.tintStrength !== undefined && Number.isFinite(strength) && strength >= 0 && strength <= 1
+        ? strength
+        : DEFAULT_TINT,
   }
   const isOff = !look.bars && !look.background
-  const statusOn = options.showStatusLine !== false
+  const badColors = (['userColor', 'claudeColor'] as const).filter(
+    k => options[k] !== undefined && options[k] !== '' && !isHex(options[k]),
+  )
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'boxed-messages',
-      description: 'Toggle message bars/background/status line: /boxed-messages bars|bg|shade|status',
+      description: 'Toggle message bars/background/shade: /boxed-messages bars|bg|shade',
     })
-    // Runs on every load, so flipping the setting (which reloads the mod) applies it.
-    const blocked = await syncStatusLine($, statusOn)
-    if (blocked) $.ui.toast(blocked)
+    try {
+      if (await removeOldStatusLine($)) {
+        $.ui.toast('boxed-messages 2.0 no longer ships a status line, so its statusLine entry was removed from settings.json.')
+      }
+    } catch {}
+    if (badColors.length) {
+      $.ui.toast(`boxed-messages: ${badColors.join(' and ')} must be a #rrggbb color; using the default.`)
+    }
     return next(e)
   })
 
@@ -163,11 +148,11 @@ export const register: Register = (on, options) => {
     if (arg === 'bars') return flip('showBars', !look.bars, 'Message bars')
     if (arg === 'bg' || arg === 'background') return flip('showBackground', !look.background, 'Message background')
     if (arg === 'shade') return flip('backgroundShade', look.shade === 'light' ? 'dark' : 'light', 'Background shade')
-    if (arg === 'status' || arg === 'statusline') return flip('showStatusLine', !statusOn, 'Status line')
+    if (arg !== '' && arg !== 'help') return { text: `Unknown option "${arg}".\n${USAGE}` }
     return {
       text:
-        `Bars: ${look.bars ? 'on' : 'off'} · Background: ${look.background ? 'on' : 'off'} (${look.shade}) · Status line: ${statusOn ? 'on' : 'off'}\n` +
-        'Usage: /boxed-messages bars | bg | shade | status   (each toggles; also in /config)',
+        `Bars: ${look.bars ? 'on' : 'off'} · Background: ${look.background ? 'on' : 'off'} ` +
+        `(${look.shade}, strength ${look.strength}) · Colors: you ${look.user}, Claude ${look.claude}\n${USAGE}`,
     }
   })
 
@@ -175,7 +160,7 @@ export const register: Register = (on, options) => {
     if (isOff || e.props.origin.kind !== 'composer' || e.props.text.trim() === '') {
       return next(e)
     }
-    return drawPrompt($, e, e.props.text, USER_COLOR, look)
+    return drawPrompt($, e, e.props.text, look)
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
@@ -186,6 +171,6 @@ export const register: Register = (on, options) => {
     }
     // isFirstOfReply false: the engine leaves off the "●" bullet.
     const inner = await next({ ...e, props: { ...e.props, isFirstOfReply: false } })
-    return decorateReply($, e, inner, CLAUDE_COLOR, look)
+    return decorateReply($, e, inner, look)
   })
 }
