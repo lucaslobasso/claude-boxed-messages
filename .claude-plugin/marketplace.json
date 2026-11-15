@@ -3,14 +3,14 @@
   "owner": { "name": "lucaslobasso", "url": "https://github.com/lucaslobasso" },
   "metadata": {
     "description": "Boxed, color-coded chat messages for Claude Code",
-    "version": "2.0.0"
+    "version": "2.0.1"
   },
   "plugins": [
     {
       "name": "boxed-messages",
       "source": "./",
       "description": "A colored bar and optional tinted background on your prompts and Claude's replies",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "category": "ui",
       "keywords": ["ui", "theme", "messages", "readability"]
     }

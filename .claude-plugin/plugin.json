@@ -1,6 +1,6 @@
 {
   "name": "boxed-messages",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange)",
   "author": {
     "name": "lucaslobasso",
