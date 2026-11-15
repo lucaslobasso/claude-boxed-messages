@@ -1,38 +1,38 @@
 # claude-boxed-messages
 
+[![CI](https://github.com/lucaslobasso/claude-boxed-messages/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaslobasso/claude-boxed-messages/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Claude Code mod](https://img.shields.io/badge/Claude%20Code-mod-d97757.svg)](#install)
 
-A Claude Code mod that makes the conversation easier to scan: every message gets a colored box, and a status line sits under the prompt. Nothing else to install.
+A Claude Code mod that makes long conversations easier to scan. Every message gets a colored box: **blue** for your prompts, **orange** for Claude's replies.
 
 <p align="center">
-  <img src="docs/hero.svg" alt="Illustration: your prompt in a blue box, a tool row, Claude's reply in an orange box, then the prompt input with the status line underneath" width="760">
+  <img src="docs/screenshot-bg.png" alt="Screenshot: a prompt in a blue box, a 'Read 1 file' tool row, and Claude's reply in an orange box, both with a tinted background" width="760">
 </p>
-<p align="center"><sub>An illustration, not a screenshot: the real thing uses your terminal's font and theme.</sub></p>
 
-**[Install](#install) · [How it looks](#how-it-looks) · [Settings](#settings) · [Status line](#status-line) · [Troubleshooting](#troubleshooting)**
+**[Install](#install) · [How it looks](#how-it-looks) · [Settings](#settings) · [Troubleshooting](#troubleshooting) · [Uninstall](#uninstall)**
 
 ## What you get
 
-- A colored bar on the left of every message: **blue** for your prompts, **orange** for Claude's replies.
-- An optional tinted background behind each message (a dimmed version of its bar color), for dark or light terminals.
-- Even padding inside each box (1 row top/bottom, 2 columns left/right).
+- A colored bar to the left of every message.
+- An optional tinted background behind each message, with dark and light shades.
+- Even padding inside each box (1 row top and bottom, 2 columns left and right).
 - No `>` marker on your prompts and no `●` bullet on Claude's replies.
-- A built-in status line: model and effort, context used, git branch, and your usage with reset timers.
+- Your own colors, if you want them (see [Settings](#settings)).
 
-Tool rows ("Ran command"), summaries and notifications are left as they are.
+Tool rows ("Read 1 file", "Ran command"), summaries and notifications are left as they are. Nothing else changes: the mod doesn't touch your settings, files or prompts.
 
 ## Install
 
-At the prompt of a Claude Code terminal session:
+**Requirements:** Claude Code with the function-hook plugin API (2.1.3xx or newer; check with `claude --version`). That API is in early access and may change between releases.
+
+At the prompt of a Claude Code session:
 
 ```
 /plugin install boxed-messages --marketplace lucaslobasso/claude-boxed-messages
 ```
 
-Answer `y` to add the marketplace, then pick a scope (user scope = every project).
-
-From a shell:
+Answer `y` to add the marketplace, then pick a scope (**user** = every project). Or from a shell:
 
 ```
 claude plugin install boxed-messages --marketplace lucaslobasso/claude-boxed-messages
@@ -40,84 +40,90 @@ claude plugin install boxed-messages --marketplace lucaslobasso/claude-boxed-mes
 
 In the desktop app: click **+** next to the prompt box, then **Plugins**, **Add marketplace** with `lucaslobasso/claude-boxed-messages`, then **Add plugin**.
 
-To update later, run `claude plugin update boxed-messages`. To remove it, see [Uninstall](#uninstall).
+The boxes appear from the next message on.
 
-Requires a Claude Code version with the function-hook plugin API (2.1.3xx). That API is in early access and may change between releases.
+### Update
+
+```
+claude plugin marketplace update claude-boxed-messages
+claude plugin update boxed-messages@claude-boxed-messages
+```
+
+Third-party marketplaces don't update automatically unless you turn that on in `/plugin` → **Marketplaces**.
+
+> **Coming from 1.x?** 2.0 no longer includes the status line. On its first start it removes the `statusLine` entry that 1.x added to your `~/.claude/settings.json`, and tells you it did. It only removes an entry that points at this mod's own script. For a similar status line, use [ccstatusline](https://github.com/sirmalloc/ccstatusline). See [CHANGELOG.md](CHANGELOG.md).
 
 ## How it looks
 
 **Bars only** (the default):
 
-<img src="docs/bars.svg" alt="Illustration: a blue bar beside the prompt and an orange bar beside the reply, no background" width="760">
+<img src="docs/screenshot-bars.png" alt="Screenshot: a blue bar beside the prompt and an orange bar beside the reply, no background" width="760">
 
-**With a background** (`/boxed-messages bg`), on a dark terminal:
+**With a background** (`/boxed-messages bg`), dark shade: see the picture at the top.
 
-<img src="docs/background.svg" alt="Illustration: the same messages with a dark blue and a dark orange tinted background" width="760">
-
-**Light shade** (`/boxed-messages shade`), for light terminals:
+**Light shade** (`/boxed-messages shade`), for light terminal themes:
 
 <img src="docs/background-light.svg" alt="Illustration: the same messages on a light terminal with pastel blue and orange backgrounds" width="760">
 
+<sub>The screenshots are real Claude Code output (see [Contributing](#contributing)); the light-shade picture is a drawing that uses the mod's own colors.</sub>
+
 ## Settings
 
-In `/config` under `boxed-messages`, or toggle from the prompt:
+Change these in `/config` under **boxed-messages**, or toggle them from the prompt:
 
 | Command | Setting | Default |
 | --- | --- | --- |
 | `/boxed-messages bars` | Message bars on/off | on |
 | `/boxed-messages bg` | Message background on/off | off |
-| `/boxed-messages shade` | Background shade: `dark` (dark terminals) / `light` (light terminals) | dark |
-| `/boxed-messages status` | Built-in status line on/off | on |
-| `/boxed-messages` | Show current state | |
+| `/boxed-messages shade` | Background shade: `dark` or `light` (match your terminal theme) | dark |
+| `/boxed-messages` | Show the current state | |
 
-Colors and tint strength are constants at the top of `hooks/register.tsx`.
+Only in `/config`:
 
-## Status line
-
-<img src="docs/statusline.svg" alt="The status line under the prompt: Opus 5.5 high, 23.0%, main, then 61.0% 3d 4hr 12m and 18.0% 2hr 13m" width="760">
-
-From left to right:
-
-| Part | Example | Shows |
+| Setting | What it does | Default |
 | --- | --- | --- |
-| Model and effort | `Opus 5.5 high` | The model and its thinking effort |
-| Context | `23.0%` | How much of the context window is used |
-| Branch | `main` | The git branch (`⎇ no git` outside a repository) |
-| Weekly usage | `61.0% 3d 4hr 12m` | Weekly limit used, and time until it resets |
-| 5-hour usage | `18.0% 2hr 13m` | Current session limit used, and time until it resets |
+| Your color (`userColor`) | Bar color of your prompts, `#rrggbb` | `#4c8dff` |
+| Claude's color (`claudeColor`) | Bar color of Claude's replies, `#rrggbb` | `#d97757` |
+| Background strength (`tintStrength`) | 0 to 1. Higher is subtler: the background moves further from the bar color toward the theme color | `0.85` |
 
-Usage comes from the rate-limit data Claude Code provides to the status line, so it appears for Claude subscriptions and is left out otherwise. There is nothing to configure beyond turning it on or off (`/boxed-messages status`, or in `/config`). The layout is a built-in copy of a [ccstatusline](https://github.com/sirmalloc/ccstatusline) setup, so you don't need to install that. Its layout and colors are constants at the top of `statusline/statusline.mjs`.
-
-### How it is wired
-
-Claude Code only reads `statusLine` from the settings files, so the mod keeps a `statusLine` entry in `~/.claude/settings.json` in step with the switch: on adds it, off removes it again. It only ever touches an entry it wrote itself. If you already have a different `statusLine`, the mod leaves it alone and shows a notice; remove yours to use the built-in one. The script runs with `node`, which must be on your `PATH`.
+From a shell you can set them at install time, for example `claude plugin install boxed-messages@claude-boxed-messages --config userColor=#3fb950`.
 
 ## Troubleshooting
 
-- **No status line.** Restart Claude Code once after installing or turning it on. Then check that `node` is on your `PATH`, and that `~/.claude/settings.json` has a `statusLine` entry containing `statusline/statusline.mjs`. If you see a notice about a different `statusLine`, remove yours.
-- **The usage numbers are missing.** They only appear for Claude subscriptions, and only once Claude Code has data to report.
-- **A faint line above messages.** Only with the background on, on themes far from a dark blue-grey. See [Known limits](#known-limits).
+- **Nothing changed.** Send a new message: boxes are drawn as messages render. Then check that `claude plugin list` shows `boxed-messages` as enabled, and that `claude --version` is 2.1.3xx or newer.
+- **A notice says a color "must be a #rrggbb color".** Fix `userColor` or `claudeColor` in `/config`. Until then the mod uses the default color.
+- **Double bars.** The mod is loaded twice, for example from the marketplace and from a local folder (`--plugin-dir` or `CLAUDE_CODE_PLUGIN_DIRS`). Keep one.
+- **A faint line above messages.** This only happens with the background on, on themes far from a dark blue-grey. See [Known limits](#known-limits).
+- **My status line disappeared after updating to 2.0.** That was the 1.x built-in status line, which 2.0 removed. Any other status line is left alone. For a similar one (model, context, git branch, usage), install [ccstatusline](https://github.com/sirmalloc/ccstatusline) (`npx ccstatusline@latest` sets it up), or see [Claude Code's status line docs](https://code.claude.com/docs/en/statusline).
 
-### Uninstall
-
-Turn the status line off first so the mod removes its settings entry. `/boxed-messages` shows whether it is on, and `/boxed-messages status` flips it. Then uninstall:
+## Uninstall
 
 ```
-claude plugin uninstall boxed-messages
+claude plugin uninstall boxed-messages@claude-boxed-messages
+claude plugin marketplace remove claude-boxed-messages
 ```
 
-If you uninstalled without doing that, delete the `statusLine` entry that mentions `statusline/statusline.mjs` from `~/.claude/settings.json`.
+Nothing is left behind: 2.0 doesn't write any files of its own.
 
 ## Known limits
 
 - Your prompts are redrawn as plain text, so special rows (e.g. pasted-image placeholders) show as their text label.
 - The background works best on dark themes close to `#1c2029`–`#282c34`; a faint line may show above messages on very different backgrounds.
-- The status line right-aligns the usage part using the `COLUMNS` variable Claude Code sets for it, and stops 5 columns short of the edge. Without `COLUMNS` it falls back to a gray bar between the two groups.
 
 ## Contributing
 
-The pictures above are generated, not hand-drawn: `node docs/make-images.mjs` redraws them from the mod's own colors and the status line script's real output. Run it after changing either.
+```
+git clone https://github.com/lucaslobasso/claude-boxed-messages
+cd claude-boxed-messages
+claude --plugin-dir .            # try your changes in a session
+claude plugin test .             # tests (tests/*.test.ts)
+claude plugin validate .         # manifest and hooks check
+```
+
+- Loading the mod once writes its type declarations to `.claude-plugin/types/`, which `tsconfig.json` uses for editor type checking. That folder is git-ignored.
+- `node docs/make-images.mjs` redraws the light-shade picture from `hooks/colors.ts` (Node 22.18+). CI checks it is up to date.
+- `docs/capture.py` takes the real screenshots offscreen: it runs `claude` in a pseudo-terminal, emulates the screen, and draws it to PNG. Run `python docs/capture.py --help` for details. It needs `pip install pyte pillow pywinpty`.
 
 ## License
 
-MIT
+[MIT](LICENSE). This is a community project, not affiliated with Anthropic.

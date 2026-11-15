@@ -1,6 +1,18 @@
 {
   "name": "claude-boxed-messages",
-  "owner": { "name": "lucaslobasso" },
-  "description": "Boxed, color-coded chat messages for Claude Code",
-  "plugins": [{ "name": "boxed-messages", "source": "./" }]
+  "owner": { "name": "lucaslobasso", "url": "https://github.com/lucaslobasso" },
+  "metadata": {
+    "description": "Boxed, color-coded chat messages for Claude Code",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "boxed-messages",
+      "source": "./",
+      "description": "A colored bar and optional tinted background on your prompts and Claude's replies",
+      "version": "2.0.0",
+      "category": "ui",
+      "keywords": ["ui", "theme", "messages", "readability"]
+    }
+  ]
 }

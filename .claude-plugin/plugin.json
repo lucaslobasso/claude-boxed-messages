@@ -1,40 +1,52 @@
 {
   "name": "boxed-messages",
-  "version": "1.1.1",
-  "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange), plus a built-in status line",
+  "version": "2.0.0",
+  "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange)",
   "author": {
-    "name": "lucaslobasso"
+    "name": "lucaslobasso",
+    "url": "https://github.com/lucaslobasso"
   },
   "homepage": "https://github.com/lucaslobasso/claude-boxed-messages",
+  "repository": "https://github.com/lucaslobasso/claude-boxed-messages",
   "license": "MIT",
+  "keywords": ["ui", "theme", "messages", "readability", "terminal"],
   "userConfig": {
     "showBars": {
       "type": "boolean",
       "title": "Message bars",
-      "description": "Colored bar left of your prompts (blue) and Claude's replies (orange)",
+      "description": "Colored bar left of your prompts and Claude's replies",
       "default": true
     },
     "showBackground": {
       "type": "boolean",
       "title": "Message background",
-      "description": "Tint behind each message, a lighter version of its bar color",
+      "description": "Tint behind each message, a dimmed version of its bar color",
       "default": false
     },
     "backgroundShade": {
       "type": "string",
       "title": "Background shade",
       "description": "dark: dim tint for dark terminal themes. light: pastel tint for light terminal themes",
-      "options": [
-        "dark",
-        "light"
-      ],
+      "options": ["dark", "light"],
       "default": "dark"
     },
-    "showStatusLine": {
-      "type": "boolean",
-      "title": "Status line",
-      "description": "Built-in status line under the prompt: model, effort, context, git branch, usage and reset timers. Adds a statusLine entry to ~/.claude/settings.json (removed again when off); a different statusLine of yours is left alone",
-      "default": true
+    "userColor": {
+      "type": "string",
+      "title": "Your color",
+      "description": "Bar color of your prompts, as #rrggbb",
+      "default": "#4c8dff"
+    },
+    "claudeColor": {
+      "type": "string",
+      "title": "Claude's color",
+      "description": "Bar color of Claude's replies, as #rrggbb",
+      "default": "#d97757"
+    },
+    "tintStrength": {
+      "type": "number",
+      "title": "Background strength",
+      "description": "0 to 1: how far the background moves from the bar color toward the theme (higher = subtler)",
+      "default": 0.85
     }
   }
 }
