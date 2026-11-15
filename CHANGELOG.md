@@ -10,6 +10,11 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 ### Changed
 - README follows the same layout as the other tools in the set, with more screenshots (custom colors, background strength) and an "Install the whole set" section.
 
+## [2.0.1] - 2026-11-15
+
+### Fixed
+- Pasted text no longer shows a `<pasted_content id="…">` tag around it in your boxed prompt. The mod now drops the wrapper before drawing the text.
+
 ## [2.0.0] - 2026-11-15
 
 ### Removed
@@ -38,7 +43,8 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 ### Added
 - First release: colored bars and optional tinted background on prompts and replies, `/boxed-messages` toggles.
 
-[2.1.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v2.0.0...boxed-messages--v2.1.0
+[2.1.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v2.0.1...boxed-messages--v2.1.0
+[2.0.1]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v2.0.0...boxed-messages--v2.0.1
 [2.0.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.1.1...boxed-messages--v2.0.0
 [1.1.1]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.1.0...boxed-messages--v1.1.1
 [1.1.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.0.0...boxed-messages--v1.1.0

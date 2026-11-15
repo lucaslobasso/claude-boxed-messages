@@ -45,6 +45,19 @@ const decorateReply = (
   )
 }
 
+// Pasted text arrives wrapped as <pasted_content id="N">…</pasted_content id="N">
+// (the closing tag repeats the id). The engine's own render hides the wrapper; we
+// draw the text ourselves, so drop the tags and the blank edge lines they leave.
+const PASTE_TAG = /<\/?pasted_content\b[^>]*>/g
+
+export const unwrapPaste = (text: string): string =>
+  text.includes('pasted_content')
+    ? text
+        .replace(PASTE_TAG, '')
+        .replace(/^[ \t]*\r?\n+/, '')
+        .replace(/\r?\n[ \t]*$/, '')
+    : text
+
 // Your prompts: drawn by the mod itself as plain text (no "> " marker, no engine
 // highlight), with our own blank line above and 1 row of padding inside.
 const drawPrompt = (
@@ -114,10 +127,10 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'UserMessage' }, async ($, e, next) => {
-    if (isOff || e.props.origin.kind !== 'composer' || e.props.text.trim() === '') {
-      return next(e)
-    }
-    return drawPrompt($, e, e.props.text, look)
+    if (isOff || e.props.origin.kind !== 'composer') return next(e)
+    const text = unwrapPaste(e.props.text)
+    if (text.trim() === '') return next(e)
+    return drawPrompt($, e, text, look)
   })
 
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
