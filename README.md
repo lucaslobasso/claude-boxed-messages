@@ -23,14 +23,18 @@ A Claude Code plugin that makes long conversations easier to scan. Every message
 
 ## Install
 
-From a shell:
+In a Claude Code session:
+
+```
+/plugin install boxed-messages --marketplace lucaslobasso/claude-boxed-messages
+```
+
+Answer `y` to add the marketplace and pick the **user** scope (every project). Or from a shell:
 
 ```sh
 claude plugin marketplace add lucaslobasso/claude-boxed-messages
 claude plugin install boxed-messages@claude-boxed-messages --scope user
 ```
-
-Or inside a Claude Code session: `/plugin marketplace add lucaslobasso/claude-boxed-messages`, then `/plugin install boxed-messages@claude-boxed-messages`.
 
 In the desktop app: click **+** next to the prompt box, then **Plugins**, **Add marketplace** with `lucaslobasso/claude-boxed-messages`, then **Add plugin**.
 
