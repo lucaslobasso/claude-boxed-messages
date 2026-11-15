@@ -10,4 +10,4 @@ marketplace `claude-boxed-messages` (this repo), so the installed id is `boxed-m
   status line cleanup, so back up `~/.claude/settings.json` first if it still has the 1.x entry.
 - Release: bump `version` in `.claude-plugin/plugin.json` **and** both versions in `marketplace.json`, add a CHANGELOG
   entry, merge, then `claude plugin tag . --push` (tags `boxed-messages--vX.Y.Z`).
-- The status line moved out of this repo in 2.0 (it lives in the owner's private personal-claude repo). Don't add it back.
+- The status line was dropped in 2.0 (use ccstatusline or any `statusLine` command instead). Don't add it back.

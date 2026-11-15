@@ -51,7 +51,7 @@ claude plugin update boxed-messages@claude-boxed-messages
 
 Third-party marketplaces don't update automatically unless you turn that on in `/plugin` → **Marketplaces**.
 
-> **Coming from 1.x?** 2.0 no longer includes the status line. On its first start it removes the `statusLine` entry that 1.x added to your `~/.claude/settings.json`, and tells you it did. It only removes an entry that points at this mod's own script. See [CHANGELOG.md](CHANGELOG.md).
+> **Coming from 1.x?** 2.0 no longer includes the status line. On its first start it removes the `statusLine` entry that 1.x added to your `~/.claude/settings.json`, and tells you it did. It only removes an entry that points at this mod's own script. For a similar status line, use [ccstatusline](https://github.com/sirmalloc/ccstatusline). See [CHANGELOG.md](CHANGELOG.md).
 
 ## How it looks
 
@@ -94,7 +94,7 @@ From a shell you can set them at install time, for example `claude plugin instal
 - **A notice says a color "must be a #rrggbb color".** Fix `userColor` or `claudeColor` in `/config`. Until then the mod uses the default color.
 - **Double bars.** The mod is loaded twice, for example from the marketplace and from a local folder (`--plugin-dir` or `CLAUDE_CODE_PLUGIN_DIRS`). Keep one.
 - **A faint line above messages.** This only happens with the background on, on themes far from a dark blue-grey. See [Known limits](#known-limits).
-- **My status line disappeared after updating to 2.0.** That was the 1.x built-in status line, which 2.0 removed. Any other status line is left alone. To get a status line, see [Claude Code's status line docs](https://code.claude.com/docs/en/statusline).
+- **My status line disappeared after updating to 2.0.** That was the 1.x built-in status line, which 2.0 removed. Any other status line is left alone. For a similar one (model, context, git branch, usage), install [ccstatusline](https://github.com/sirmalloc/ccstatusline) (`npx ccstatusline@latest` sets it up), or see [Claude Code's status line docs](https://code.claude.com/docs/en/statusline).
 
 ## Uninstall
 
