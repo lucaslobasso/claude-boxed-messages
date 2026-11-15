@@ -56,7 +56,7 @@ test('removes the 1.x entry from a marketplace install, even as the last key', a
 })
 
 test('a different statusLine is never touched', async () => {
-  const theirs = `{"statusLine":${entry('node "C:/Users/me/personal-claude/statusline/statusline.mjs"')}}`
+  const theirs = `{"statusLine":${entry('npx -y ccstatusline@latest')}}`
   const s = await run(theirs)
 
   expect(s.file).toBe(theirs)
