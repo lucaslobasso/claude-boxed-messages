@@ -65,44 +65,6 @@ const drawPrompt = (
   )
 }
 
-// Up to 1.1.x the mod shipped a status line and kept a `statusLine` entry in the
-// user settings.json pointing at its own copy of statusline/statusline.mjs. 2.0
-// dropped it, so that entry would point at a script that no longer exists. Remove
-// it, and only when it is plainly ours: a command naming a boxed-messages folder
-// and that script. Anything else is left alone. Can go in a later release.
-const OLD_SCRIPT = /boxed-messages[\\/][^"]*statusline[\\/]statusline\.mjs/
-const OLD_BLOCK = /[ \t]*"statusLine"\s*:\s*\{[^{}]*\}[ \t]*,?[ \t]*\r?\n?/
-
-export const removeOldStatusLine = async ($: EngineInterface): Promise<boolean> => {
-  const configDir = await $.env.get('CLAUDE_CONFIG_DIR')
-  const home = (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME'))
-  const dir = configDir || (home ? `${home}/.claude` : undefined)
-  if (!dir) return false
-  const file = `${dir.replace(/\\/g, '/')}/settings.json`
-  let text: string
-  let settings: Record<string, any>
-  try {
-    text = (await $.fs.read(file)) as string
-    settings = JSON.parse(text)
-  } catch {
-    return false
-  }
-  const command = settings.statusLine?.command
-  if (typeof command !== 'string' || !OLD_SCRIPT.test(command)) return false
-
-  const want: Record<string, any> = { ...settings }
-  delete want.statusLine
-  // Keep the file's own formatting when the cut parses to what we meant; else rewrite it whole.
-  let next = text.replace(OLD_BLOCK, '')
-  try {
-    if (JSON.stringify(JSON.parse(next)) !== JSON.stringify(want)) next = JSON.stringify(want, null, 2) + '\n'
-  } catch {
-    next = JSON.stringify(want, null, 2) + '\n'
-  }
-  await $.fs.write(file, next)
-  return true
-}
-
 const USAGE = 'Usage: /boxed-messages bars | bg | shade   (each toggles; colors and tint strength are in /config)'
 
 export const register: Register = (on, options) => {
@@ -128,11 +90,6 @@ export const register: Register = (on, options) => {
       name: 'boxed-messages',
       description: 'Toggle message bars/background/shade: /boxed-messages bars|bg|shade',
     })
-    try {
-      if (await removeOldStatusLine($)) {
-        $.ui.toast('boxed-messages 2.0 no longer ships a status line, so its statusLine entry was removed from settings.json.')
-      }
-    } catch {}
     if (badColors.length) {
       $.ui.toast(`boxed-messages: ${badColors.join(' and ')} must be a #rrggbb color; using the default.`)
     }
