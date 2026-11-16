@@ -12,13 +12,21 @@ Options worth knowing:
     --send TEXT@SECONDS   type TEXT (\\r = Enter) into the program after SECONDS; repeatable
     --frames N --every MS take N frames MS apart (after --wait) and write a GIF
     --rows-from/--rows-to keep only part of the screen (blank rows at the end are trimmed)
+    --from-text REGEX     start one row above the first row that matches (overrides --rows-from)
     --hide REGEX          blank out every match on screen (paths, names) before drawing
+    --sandbox SETTINGS    run in a throwaway CLAUDE_CONFIG_DIR: SETTINGS (a JSON file or inline JSON)
+                          becomes its settings.json, your login is copied in, onboarding and the
+                          trust prompt are pre-answered, and the folder is deleted afterwards. Your
+                          own plugins, status line and history stay out of the picture.
 """
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
+import shutil
+import tempfile
 import sys
 import threading
 import time
@@ -54,6 +62,26 @@ def spawn(argv: list[str], cols: int, rows: int, env: dict[str, str]):
     return PtyProcessUnicode.spawn(argv, dimensions=(rows, cols), env=env)
 
 
+SANDBOXES: list[str] = []  # removed on exit, even after an error (they hold a copy of the login)
+
+
+def make_sandbox(settings: str, cwd: str) -> str:
+    """A throwaway config dir with SETTINGS, a copy of the login, and CWD already trusted."""
+    real = os.environ.get('CLAUDE_CONFIG_DIR') or os.path.join(os.path.expanduser('~'), '.claude')
+    box = tempfile.mkdtemp(prefix='capture-cfg-')
+    data = json.loads(open(settings, encoding='utf-8').read() if os.path.isfile(settings) else settings)
+    with open(os.path.join(box, 'settings.json'), 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2)
+    login = os.path.join(real, '.credentials.json')  # Windows/Linux; macOS keeps it in the keychain
+    if os.path.isfile(login):
+        shutil.copy(login, box)
+    key = os.path.abspath(cwd).replace('\\', '/')
+    state = {'hasCompletedOnboarding': True, 'projects': {key: {'hasTrustDialogAccepted': True, 'hasClaudeMdExternalIncludesApproved': False, 'hasClaudeMdExternalIncludesWarningShown': True}}}
+    with open(os.path.join(box, '.claude.json'), 'w', encoding='utf-8') as f:
+        json.dump(state, f)
+    return box
+
+
 def color(value: str, default: tuple[int, int, int]) -> tuple[int, int, int]:
     if value == 'default':
         return default
@@ -84,7 +112,12 @@ def render(screen: pyte.Screen, args, hide: list[re.Pattern]) -> Image.Image:
     sym = load_font(SYMBOL_CANDIDATES, args.font_size)
     cw = round(font.getlength('M'))
     lh = round(args.font_size * 1.4)
-    lines = list(range(screen.lines))[args.rows_from:args.rows_to]
+    start = args.rows_from
+    if args.from_text:
+        hit = next((i for i, row in enumerate(screen.display) if re.search(args.from_text, row)), None)
+        if hit is not None:
+            start = max(0, hit - 1)
+    lines = list(range(screen.lines))[start:args.rows_to]
     # Trim blank rows at the bottom.
     while lines and not ''.join(screen.buffer[lines[-1]][c].data for c in range(screen.columns)).strip():
         lines.pop()
@@ -137,12 +170,14 @@ def main() -> int:
     ap.add_argument('--every', type=int, default=250, help='ms between frames')
     ap.add_argument('--rows-from', type=int, default=None)
     ap.add_argument('--rows-to', type=int, default=None)
+    ap.add_argument('--from-text', default=None, help='start one row above the first row matching this regex')
     ap.add_argument('--hide', action='append', default=[])
     ap.add_argument('--font-size', type=int, default=15)
     ap.add_argument('--no-chrome', dest='chrome', action='store_false')
     ap.add_argument('--title', default='')
     ap.add_argument('--cwd', default=None)
     ap.add_argument('--dump', action='store_true', help='also print the final screen as text')
+    ap.add_argument('--sandbox', default=None, help='settings.json (file or inline JSON) for a throwaway config dir')
     ap.add_argument('command', nargs=argparse.REMAINDER)
     args = ap.parse_args()
     argv = args.command[1:] if args.command[:1] == ['--'] else args.command
@@ -153,6 +188,12 @@ def main() -> int:
     env = dict(os.environ, COLUMNS=str(args.cols), LINES=str(args.rows), TERM='xterm-256color', COLORTERM='truecolor')
     if args.cwd:
         os.chdir(args.cwd)
+    if args.sandbox:
+        SANDBOXES.append(make_sandbox(args.sandbox, os.getcwd()))
+        # A capture started from inside a Claude session would inherit its markers (no transcript, no color).
+        for k in [k for k in env if k.startswith(('CLAUDE_CODE_', 'CLAUDECODE')) or k == 'NO_COLOR']:
+            del env[k]
+        env['CLAUDE_CONFIG_DIR'] = SANDBOXES[-1]
     screen = pyte.Screen(args.cols, args.rows)
     stream = pyte.Stream(screen)
     lock = threading.Lock()
@@ -204,4 +245,10 @@ def main() -> int:
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.stdout.reconfigure(encoding='utf-8')
+    try:
+        sys.exit(main())
+    finally:
+        for box in SANDBOXES:
+            time.sleep(0.5)
+            shutil.rmtree(box, ignore_errors=True)

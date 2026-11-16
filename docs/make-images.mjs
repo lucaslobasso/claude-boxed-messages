@@ -3,7 +3,7 @@
 //
 // They are drawings, not screenshots: the message boxes use the mod's own colors
 // and tint math (hooks/colors.ts, imported directly; Node 22.18+ reads .ts files).
-// The screenshots next to them come from docs/capture.ps1.
+// The screenshots next to them come from docs/capture.py.
 import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

@@ -1,9 +1,9 @@
 {
   "name": "boxed-messages",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Boxed chat messages for Claude Code: a colored bar and optional tinted background on your prompts (blue) and Claude's replies (orange)",
   "author": {
-    "name": "lucaslobasso",
+    "name": "Lucas Lobasso",
     "url": "https://github.com/lucaslobasso"
   },
   "homepage": "https://github.com/lucaslobasso/claude-boxed-messages",

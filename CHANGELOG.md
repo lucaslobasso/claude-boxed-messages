@@ -2,6 +2,14 @@
 
 All notable changes to this project. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-11-16
+
+### Removed
+- The one-time 1.x status line cleanup. boxed-messages no longer reads or writes `settings.json` at all. A leftover 1.x `statusLine` entry is now taken over by [claude-statusline](https://github.com/lucaslobasso/claude-statusline), or you can delete it by hand.
+
+### Changed
+- README follows the same layout as the other tools in the set, with more screenshots (custom colors, background strength) and an "Install the whole set" section.
+
 ## [2.0.1] - 2026-11-15
 
 ### Fixed
@@ -35,6 +43,8 @@ All notable changes to this project. The format follows [Keep a Changelog](https
 ### Added
 - First release: colored bars and optional tinted background on prompts and replies, `/boxed-messages` toggles.
 
+[2.1.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v2.0.1...boxed-messages--v2.1.0
+[2.0.1]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v2.0.0...boxed-messages--v2.0.1
 [2.0.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.1.1...boxed-messages--v2.0.0
 [1.1.1]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.1.0...boxed-messages--v1.1.1
 [1.1.0]: https://github.com/lucaslobasso/claude-boxed-messages/compare/boxed-messages--v1.0.0...boxed-messages--v1.1.0
